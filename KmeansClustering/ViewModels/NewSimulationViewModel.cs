@@ -17,7 +17,7 @@ namespace KmeansClustering
     {
         #region Public Evants
 
-        public Action<int, int, Algorithm> OnStartSimulation;
+        public Action<int, int, DistanceAlgorithm> OnStartSimulation;
 
         #endregion
 
@@ -55,14 +55,14 @@ namespace KmeansClustering
             }
         }
 
-        public List<Algorithm> Algorithms
+        public List<DistanceAlgorithm> Algorithms
         {
             get
             {
-                List<Algorithm> algos = new List<Algorithm>();
-                foreach (var item in Enum.GetValues(typeof(Algorithm)))
+                List<DistanceAlgorithm> algos = new List<DistanceAlgorithm>();
+                foreach (var item in Enum.GetValues(typeof(DistanceAlgorithm)))
                 {
-                    algos.Add((Algorithm)item);
+                    algos.Add((DistanceAlgorithm)item);
                 }
                 return algos;
             }
@@ -70,7 +70,7 @@ namespace KmeansClustering
 
         public int Clusters { get; set; }
         public int Points { get; set; }
-        public Algorithm Algorithm { get; set; }
+        public DistanceAlgorithm Algorithm { get; set; }
 
         #endregion
 

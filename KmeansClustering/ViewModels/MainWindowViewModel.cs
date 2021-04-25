@@ -58,6 +58,8 @@ namespace KmeansClustering
             set { _silhouettePercentage = value; RaisePropertyChanged(nameof(SilhouettePercentage)); }
         }
 
+        public DistanceAlgorithm  DistanceAlgorithm { get; set; }
+
         #endregion
 
         #region Constructors
@@ -186,20 +188,22 @@ namespace KmeansClustering
         {
             _newSimulationView = new NewSimulationView();
             var vm = new NewSimulationViewModel();
-            vm.OnStartSimulation += (int clusters, int points, Algorithm algo) =>
+            vm.OnStartSimulation += (int clusters, int points, DistanceAlgorithm algo) =>
             {
                 _newSimulationView.Close();
                 _newSimulationView = null;
                 NbPoints = points;
                 NbClusters = clusters;
-                if (algo == Algorithm.Equlidient) SelectedAlgorithm = "Equlidient";
-                if (algo == Algorithm.Equlidient) Kmeans(clusters, points, algo);
+                DistanceAlgorithm = algo;
+                if (algo == DistanceAlgorithm.Equlidient) SelectedAlgorithm = "Equlidient";
+                if (algo == DistanceAlgorithm.Manhattan) SelectedAlgorithm = "Manhattan";
+                Kmeans(clusters, points, algo);
             };
             _newSimulationView.DataContext = vm;
             _newSimulationView.Show();
         }
 
-        private void Kmeans(int clusters, int points, Algorithm algorithm)
+        private void Kmeans(int clusters, int points, DistanceAlgorithm algorithm)
         {
             Task.Run(async () => {
                 
@@ -223,7 +227,7 @@ namespace KmeansClustering
                 
             for (int i = 0 ; i < points; i++)
             {
-                Points.Add(new Point() {PointID = i, Attr1 = random.Next(1, 100), Attr2 = random.Next(1, 100) });
+                Points.Add(new Point() {PointID = i, AttrX = random.Next(1, 100), AttrY = random.Next(1, 100) });
             }
             
         }
@@ -233,8 +237,8 @@ namespace KmeansClustering
             var values = new ChartValues<ScatterPoint>();
             SeriesCollection.ToList().ForEach((serie) => { serie.Values.Clear(); });
             Points.ForEach((point) => {
-                values.Add(new ScatterPoint(point.Attr1, point.Attr2, 1));
-                SeriesCollection.FirstOrDefault().Values.Add(new ScatterPoint(point.Attr1, point.Attr2));
+                values.Add(new ScatterPoint(point.AttrX, point.AttrY, 1));
+                SeriesCollection.FirstOrDefault().Values.Add(new ScatterPoint(point.AttrX, point.AttrY));
             });
 
         }
@@ -253,8 +257,8 @@ namespace KmeansClustering
                 Clusters.Add(new Cluster()
                 {
                     ClusterID = id,
-                    Attr1 = point.Attr1,
-                    Attr2 = point.Attr2
+                    AttrX = point.AttrX,
+                    AttrY = point.AttrY
                 });
                 id++;
             }
@@ -263,7 +267,7 @@ namespace KmeansClustering
         private void SetClusterForEachPoint()
         {
             Points.ForEach((point) => {
-                point.SetCluster(Clusters);
+                point.SetCluster(Clusters, DistanceAlgorithm);
             });
 
             UpdateChartPoints();
@@ -277,7 +281,7 @@ namespace KmeansClustering
                 SeriesCollection.ElementAt(i).Values.Clear();
                 var values = new ChartValues<ScatterPoint>();
                 Points.Where(p => p.Cluster.ClusterID == i).ToList().ForEach((point) => {
-                    values.Add(new ScatterPoint(point.Attr1, point.Attr2, 1));
+                    values.Add(new ScatterPoint(point.AttrX, point.AttrY, 1));
                 });
                 SeriesCollection.ElementAt(i).Values.AddRange(values);
             }
@@ -304,7 +308,7 @@ namespace KmeansClustering
 
             Clusters.ForEach((cluster) => {
                 cluster.Points = Points.Where(p => p.Cluster.ClusterID == cluster.ClusterID).ToList();
-                SeriesCollection.ElementAt(cluster.ClusterID).Values.AddRange(new List<ScatterPoint>() { new ScatterPoint(cluster.Attr1, cluster.Attr2, clusterWeight)});
+                SeriesCollection.ElementAt(cluster.ClusterID).Values.AddRange(new List<ScatterPoint>() { new ScatterPoint(cluster.AttrX, cluster.AttrY, clusterWeight)});
             });
 
             Clusters.ForEach((cluster) =>
@@ -312,7 +316,7 @@ namespace KmeansClustering
                 cluster.NbPoints = cluster.Points.Count();
                 cluster.Points.ForEach((point) =>
                 {
-                    point.CalculateSilhouette(Points);
+                    point.CalculateSilhouette(Points, DistanceAlgorithm);
                 });
             });
             

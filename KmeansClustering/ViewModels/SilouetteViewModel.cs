@@ -73,7 +73,7 @@ namespace KmeansClustering
         {
             get
             {
-                return "(" + Point.Attr1 + "," + Point.Attr2 + ") " + Point.Silhouette;
+                return "(" + Point.AttrX + "," + Point.AttrY + ") " + Point.Silhouette;
             }
         }
         public double Width

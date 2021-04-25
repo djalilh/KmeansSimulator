@@ -8,9 +8,10 @@ namespace KmeansClustering.Models
 {
     public class Enums
     {
-        public enum Algorithm : int
+        public enum DistanceAlgorithm : int
         {
             Equlidient = 0,
+            Manhattan = 1
         }
     }
 }

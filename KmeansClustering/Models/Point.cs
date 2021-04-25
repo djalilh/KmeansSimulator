@@ -3,66 +3,94 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static KmeansClustering.Models.Enums;
 
 namespace KmeansClustering
 {
     public class Point
     {
         public int PointID { get; set; }
-        public double Attr1 { get; set; }
-        public double Attr2 { get; set; }
+        public double AttrX { get; set; }
+        public double AttrY { get; set; }
         public Cluster Cluster { get; set; }
         public double Silhouette { get; set; }
 
-        public double CalculateDistance(Cluster cluster)
+        public double CalculateDistance(Cluster cluster, DistanceAlgorithm distanceAlgorithm)
+        {
+            if (distanceAlgorithm == DistanceAlgorithm.Equlidient) return DistanceEqulidient(cluster);
+            else if (distanceAlgorithm == DistanceAlgorithm.Manhattan) return DistanceManhattan(cluster);
+            return 0;
+        }
+
+        private double DistanceEqulidient(Cluster cluster)
         {
             return Math.Sqrt(
-                Math.Pow(cluster.Attr1 - Attr1, 2) +
-                Math.Pow(cluster.Attr2 - Attr2, 2)
+                Math.Pow(cluster.AttrX - AttrX, 2) +
+                Math.Pow(cluster.AttrY - AttrY, 2)
                 );
         }
 
-        public double CalculateDistance(Point point)
+        private double DistanceManhattan(Cluster cluster)
+        {
+            return Math.Abs(cluster.AttrX - AttrX) + Math.Abs(cluster.AttrY - AttrY) ;
+        }
+
+        public double CalculateDistance(Point point, DistanceAlgorithm distanceAlgorithm)
+        {
+            if (distanceAlgorithm == DistanceAlgorithm.Equlidient) return DistanceEqulidient(point);
+            if (distanceAlgorithm == DistanceAlgorithm.Manhattan) return DistanceManhattan(point);
+            return 0;
+        }
+
+        private double DistanceEqulidient(Point point)
         {
             return Math.Sqrt(
-                Math.Pow(point.Attr1 - Attr1, 2) +
-                Math.Pow(point.Attr2 - Attr2, 2)
+                Math.Pow(point.AttrX - AttrX, 2) +
+                Math.Pow(point.AttrY - AttrY, 2)
                 );
         }
 
-        public void SetCluster(List<Cluster> Clusters)
+        private double DistanceManhattan(Point point)
+        {
+            return Math.Sqrt(
+                Math.Pow(point.AttrX - AttrX, 2) +
+                Math.Pow(point.AttrY - AttrY, 2)
+                );
+        }
+
+        public void SetCluster(List<Cluster> Clusters, DistanceAlgorithm distanceAlgorithm)
         {
             Clusters.ForEach((cluster) => {
                 if (Cluster == null) Cluster = cluster;
-                else if (CalculateDistance(cluster) < CalculateDistance(Cluster))
+                else if (CalculateDistance(cluster, distanceAlgorithm) < CalculateDistance(Cluster, distanceAlgorithm))
                 {
                     Cluster = cluster;
                 }
             });
         }
 
-        private double CalculateA(List<Point> Points)
+        private double CalculateA(List<Point> Points, DistanceAlgorithm distanceAlgorithm)
         {
             double sum = 0;
             Points.ForEach((point) => {
-                sum += CalculateDistance(point);
+                sum += CalculateDistance(point, distanceAlgorithm);
             });
             return (double)sum / (double)Points.Count();
         }
 
-        private double CalculateB(List<Point> Points)
+        private double CalculateB(List<Point> Points, DistanceAlgorithm distanceAlgorithm)
         {
             List<double> distanses = new List<double>();
             Points.ForEach((point) => {
-                distanses.Add(CalculateDistance(point));
+                distanses.Add(CalculateDistance(point, distanceAlgorithm));
             });
             return distanses.Min();
         }
 
-        public void CalculateSilhouette(List<Point> Points)
+        public void CalculateSilhouette(List<Point> Points, DistanceAlgorithm distanceAlgorithm)
         {
-            double A = CalculateA(Points.Where(p => p.Cluster.ClusterID == Cluster.ClusterID).ToList());
-            double B = CalculateB(Points.Where(p => p.Cluster.ClusterID != Cluster.ClusterID).ToList());
+            double A = CalculateA(Points.Where(p => p.Cluster.ClusterID == Cluster.ClusterID).ToList(), distanceAlgorithm);
+            double B = CalculateB(Points.Where(p => p.Cluster.ClusterID != Cluster.ClusterID).ToList(), distanceAlgorithm);
 
             if (A > B)
             {
